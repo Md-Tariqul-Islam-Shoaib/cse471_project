@@ -11,20 +11,51 @@ from flask_share import Share
 from werkzeug.utils import secure_filename
 import os
 
-#Shoaib
+UPLOAD_FOLDER = './static/uploads/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ADMINUSER = 'admin'
+ADMINPASSWORD = 'password12'
+
+
 share = Share()
 app = Flask(__name__)
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+share.init_app(app)
+db = SQLAlchemy(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = '/admin/login'
 
+
 app.secret_key = 'secret_key'
 app.app_context().push()
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return AdminUser.query.get(int(user_id))
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/about_us')
+def about_us():
+    return render_template('about_us.html')
+
 
 @app.route('/register', methods=['Get', 'POST'])
 def register():
@@ -40,6 +71,27 @@ def register():
         return redirect('/login')
     return render_template('register.html')
 
+
+@app.route('/admin/login', methods=['Get', 'POST'])
+def adminLogin():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = AdminUser.query.filter_by(username=username).first()
+        print(user)
+        if user:
+            if password == user.password:
+                login_user(user)
+                next = request.args.get('next')
+                print(next)
+                return redirect(next or url_for('newsAdd'))
+            else:
+                return render_template('admin-login.html', errorMsg='Invalid Admin Credentials')
+        else:
+            return render_template('admin-login.html', errorMsg='Invalid Admin Credentials')
+    return render_template('admin-login.html', errorMsg='')
+
+
 @app.route('/login', methods=['Get', 'POST'])
 def login():
     if request.method == 'POST':
@@ -53,6 +105,7 @@ def login():
             return render_template('login.html', error='Invalid user')
     return render_template('login.html')
 
+
 @app.route('/dashboard')
 def dashboard():
     if session['email']:
@@ -61,41 +114,20 @@ def dashboard():
 
     return redirect('/login')
 
+
 @app.route('/logout')
 def logout():
     session.pop('email', None)
     return redirect('/login')
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(100))
 
-    def __init__(self, email, password, name):
-        self.name = name
-        self.email = email
-        self.password = bcrypt.hashpw(password.encode(
-            'utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-    def check_password(self, password):
-        return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
+@app.route('/admin/logout', methods=['GET', 'POST'])
+@login_required
+def adminLogout():
+    logout_user()
+    return redirect('/admin/login')
 
 
-#Elham
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-share.init_app(app)
-db = SQLAlchemy(app)
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 @app.route('/matches')
 def allMatches():
     all_matches = Matches.query.order_by(Matches.created_at).all()
@@ -291,63 +323,6 @@ def newsOne(id):
     news = News.query.get_or_404(id)
     return render_template("news-one.html", news=news)
 
-class News(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    article = db.Column(db.String(1000), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return '<News %r>' % self.id
-
-class Matches(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    team1 = db.Column(db.String(200), nullable=True)
-    team2 = db.Column(db.String(200), nullable=True)
-    stadium = db.Column(db.String(200), nullable=True)
-    time = db.Column(db.String(200), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return '<Matches %r>' % self.id
-
-#Rubayt
-UPLOAD_FOLDER = './static/uploads/'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-#ADMIN authentication
-ADMINUSER = 'admin'
-ADMINPASSWORD = 'password12'
-
-@app.route('/about_us')
-def about_us():
-    return render_template('about_us.html')
-
-@app.route('/admin/login', methods=['Get', 'POST'])
-def adminLogin():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = AdminUser.query.filter_by(username=username).first()
-        print(user)
-        if user:
-            if password == user.password:
-                login_user(user)
-                next = request.args.get('next')
-                print(next)
-                return redirect(next or url_for('newsAdd'))
-            else:
-                return render_template('admin-login.html', errorMsg='Invalid Admin Credentials')
-        else:
-            return render_template('admin-login.html', errorMsg='Invalid Admin Credentials')
-    return render_template('admin-login.html', errorMsg='')
-
-@app.route('/admin/logout', methods=['GET', 'POST'])
-@login_required
-def adminLogout():
-    logout_user()
-    return redirect('/admin/login')
-
 
 @app.route('/admin/players', methods=['POST', 'GET'])
 @login_required
@@ -439,6 +414,17 @@ def playerOne(id):
 def team():
     return render_template("team.html")
 
+
+class News(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    article = db.Column(db.String(1000), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return '<News %r>' % self.id
+
+
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
@@ -456,10 +442,41 @@ class Player(db.Model):
 
     def __repr__(self):
         return '<Player %r>' % self.id
+
+
+class Matches(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    team1 = db.Column(db.String(200), nullable=True)
+    team2 = db.Column(db.String(200), nullable=True)
+    stadium = db.Column(db.String(200), nullable=True)
+    time = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return '<Matches %r>' % self.id
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+
+    def __init__(self, email, password, name):
+        self.name = name
+        self.email = email
+        self.password = bcrypt.hashpw(password.encode(
+            'utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
+
+
 class AdminUser(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
