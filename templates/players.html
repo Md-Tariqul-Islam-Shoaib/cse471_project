@@ -1,0 +1,35 @@
+{% extends 'base.html' %} {% block body %}
+
+<!-- <table>
+  <tr>
+    <th style="width: 30%">Name</th>
+    <th style="width: 10%">Age</th>
+    <th style="width: 10%">Position</th>
+  </tr>
+  {% for player in all_players %}
+  <tr>
+    <td><a href="/players/{{player.id}}">{{ player.name }}</a></td>
+    <td>{{ player.age }}</td>
+    <td>{{ player.position }}</td>
+  </tr>
+  {% endfor %}
+</table> -->
+
+<div class="card-container-horizontal-players">
+  {% for player in all_players %}
+  <div class="card-player">
+    <div>
+      <image
+        src="/static/uploads/{{ player.imageFile }}"
+        width="200"
+        height="200"
+      />
+    </div>
+    <div><a href="/players/{{player.id}}">{{ player.name }}</a></div>
+    <div>Age: {{ player.age }}</div>
+    <div>Position: {{ player.position }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
