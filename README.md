@@ -4,20 +4,6 @@
 
 ![1](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/945ad0b0-0c5f-4fda-998b-55b8f0ef2647)
 
-![2](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/317faca2-c50b-47e8-9335-218e97c28ed5)
-
-![3](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/c1508c1d-544b-4252-95b1-c4c4ce82fabb)
-
-![4](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/5235040e-5217-4014-a77f-c375f4b57a6b)
-
-![5](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/d2d42db6-0905-40a3-911f-9d1c190d5857)
-
-![6](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/4047a8a0-dbb3-4e39-8712-3623434f1123)
-
-![7](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/24c79c71-f9f3-476e-80b6-aadfe54f65cc)
-
-![8](https://github.com/ElhamNusratSnigdha/football-club-management/assets/60064694/64237884-6fcb-4694-b620-4ceec75a4234)
-
 Run in the terminal:
 
 ```
