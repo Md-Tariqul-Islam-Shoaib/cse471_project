@@ -11,22 +11,21 @@ from flask_share import Share
 from werkzeug.utils import secure_filename
 import os
 
-UPLOAD_FOLDER = './static/uploads/'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-ADMINUSER = 'admin'
-ADMINPASSWORD = 'password12'
-
-
-share = Share()
 app = Flask(__name__)
-
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
 share.init_app(app)
 db = SQLAlchemy(app)
+
+UPLOAD_FOLDER = './static/uploads/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+
+ADMINUSER = 'admin'
+ADMINPASSWORD = 'password12'
+
+share = Share()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -36,11 +35,9 @@ login_manager.login_view = '/admin/login'
 app.secret_key = 'secret_key'
 app.app_context().push()
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return AdminUser.query.get(int(user_id))
-
 
 @app.route('/')
 def index():
@@ -51,11 +48,9 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 @app.route('/about_us')
 def about_us():
     return render_template('about_us.html')
-
 
 @app.route('/register', methods=['Get', 'POST'])
 def register():
@@ -70,7 +65,6 @@ def register():
         db.session.commit()
         return redirect('/login')
     return render_template('register.html')
-
 
 @app.route('/admin/login', methods=['Get', 'POST'])
 def adminLogin():
@@ -91,7 +85,6 @@ def adminLogin():
             return render_template('admin-login.html', errorMsg='Invalid Admin Credentials')
     return render_template('admin-login.html', errorMsg='')
 
-
 @app.route('/login', methods=['Get', 'POST'])
 def login():
     if request.method == 'POST':
@@ -105,7 +98,6 @@ def login():
             return render_template('login.html', error='Invalid user')
     return render_template('login.html')
 
-
 @app.route('/dashboard')
 def dashboard():
     if session['email']:
@@ -114,12 +106,10 @@ def dashboard():
 
     return redirect('/login')
 
-
 @app.route('/logout')
 def logout():
     session.pop('email', None)
     return redirect('/login')
-
 
 @app.route('/admin/logout', methods=['GET', 'POST'])
 @login_required
@@ -127,18 +117,15 @@ def adminLogout():
     logout_user()
     return redirect('/admin/login')
 
-
 @app.route('/matches')
 def allMatches():
     all_matches = Matches.query.order_by(Matches.created_at).all()
     return render_template("matches.html", all_matches=all_matches)
 
-
 @app.route('/matches/<int:id>')
 def matchOne(id):
     match = Matches.query.get_or_404(id)
     return render_template("match-one.html", match=match)
-
 
 @app.route('/admin/matches', methods=['POST', 'GET'])
 @login_required
@@ -160,7 +147,6 @@ def matchesAdd():
     else:
         all_matches = Matches.query.order_by(Matches.created_at).all()
         return render_template("match-add.html", all_matches=all_matches)
-
 
 @app.route('/admin/matches/scrape', methods=['GET'])
 def matchesScrape():
@@ -187,7 +173,6 @@ def matchesScrape():
             return 'An error occurred'
     return redirect('/admin/matches')
 
-
 @app.route('/admin/matches/delete/<int:id>')
 def matchDelete(id):
     match_to_delete = Matches.query.get_or_404(id)
@@ -198,7 +183,6 @@ def matchDelete(id):
     except:
         return 'An error occurred'
 
-
 @app.route('/admin/matches/deleteall')
 def matchDeleteAll():
 
@@ -208,7 +192,6 @@ def matchDeleteAll():
         return redirect('/admin/matches')
     except:
         return 'An error occurred'
-
 
 @app.route('/admin/matches/update/<int:id>', methods=['POST', 'GET'])
 def matchUpdate(id):
@@ -225,7 +208,6 @@ def matchUpdate(id):
             return 'An error occurred'
     else:
         return render_template("match-update.html", match=match_to_update)
-
 
 @app.route('/admin/news', methods=['POST', 'GET'])
 @login_required
@@ -244,7 +226,6 @@ def newsAdd():
     else:
         all_news = News.query.order_by(News.created_at).all()
         return render_template("news-add.html", all_news=all_news)
-
 
 @app.route('/admin/news/scrape', methods=['GET'])
 def newsScrape():
@@ -275,7 +256,6 @@ def newsScrape():
             return 'An error occurred'
     return redirect('/admin/news')
 
-
 @app.route('/admin/news/delete/<int:id>')
 def newsDelete(id):
     news_to_delete = News.query.get_or_404(id)
@@ -286,7 +266,6 @@ def newsDelete(id):
     except:
         return 'An error occurred'
 
-
 @app.route('/admin/news/deleteall')
 def newsDeleteAll():
     try:
@@ -295,7 +274,6 @@ def newsDeleteAll():
         return redirect('/admin/news')
     except:
         return 'An error occurred'
-
 
 @app.route('/admin/news/update/<int:id>', methods=['POST', 'GET'])
 def newsUpdate(id):
@@ -311,18 +289,15 @@ def newsUpdate(id):
     else:
         return render_template("news-update.html", news=news_to_update)
 
-
 @app.route('/news')
 def allNews():
     all_news = News.query.order_by(News.created_at).all()
     return render_template("news.html", all_news=all_news)
 
-
 @app.route('/news/<int:id>')
 def newsOne(id):
     news = News.query.get_or_404(id)
     return render_template("news-one.html", news=news)
-
 
 @app.route('/admin/players', methods=['POST', 'GET'])
 @login_required
@@ -358,7 +333,6 @@ def playersAdd():
         all_players = Player.query.order_by(Player.created_at).all()
         return render_template("player-add.html", all_players=all_players)
 
-
 @app.route('/admin/players/update/<int:id>', methods=['POST', 'GET'])
 def playerUpdate(id):
     player_to_update = Player.query.get_or_404(id)
@@ -386,7 +360,6 @@ def playerUpdate(id):
     else:
         return render_template("player-update.html", player=player_to_update)
 
-
 @app.route('/admin/players/delete/<int:id>')
 def playerDelete(id):
     player_to_delete = Player.query.get_or_404(id)
@@ -397,23 +370,19 @@ def playerDelete(id):
     except:
         return 'An error occurred'
 
-
 @app.route('/players')
 def allPlayers():
     all_players = Player.query.order_by(Player.created_at).all()
     return render_template("players.html", all_players=all_players)
-
 
 @app.route('/players/<int:id>')
 def playerOne(id):
     player = Player.query.get_or_404(id)
     return render_template("player-one.html", player=player)
 
-
 @app.route('/team')
 def team():
     return render_template("team.html")
-
 
 class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -423,7 +392,6 @@ class News(db.Model):
 
     def __repr__(self):
         return '<News %r>' % self.id
-
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -443,7 +411,6 @@ class Player(db.Model):
     def __repr__(self):
         return '<Player %r>' % self.id
 
-
 class Matches(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     team1 = db.Column(db.String(200), nullable=True)
@@ -454,7 +421,6 @@ class Matches(db.Model):
 
     def __repr__(self):
         return '<Matches %r>' % self.id
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
