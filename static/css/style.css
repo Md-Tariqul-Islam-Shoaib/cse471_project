@@ -1006,6 +1006,11 @@ textarea#comment.update_mail::placeholder {
   float: left;
   background-color: #d07d6b;
   height: auto;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  text-align: center;
+  
 }
 
 .copyright_text {
